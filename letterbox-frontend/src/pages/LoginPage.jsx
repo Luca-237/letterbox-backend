@@ -19,7 +19,7 @@ function LoginPage() {
       
       // Usamos la función del contexto para actualizar el estado global
       login(response.data.user); 
-      
+      localStorage.setItem('token', response.data.token);
       // Redirigimos al usuario a la página principal
       navigate('/'); 
     } catch (err) {

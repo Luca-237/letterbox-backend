@@ -1,35 +1,53 @@
 import axios from 'axios';
 
-// Creamos una instancia de Axios con la URL base de nuestro backend
+// 1. CREACIÓN DE LA INSTANCIA DE AXIOS
 const apiClient = axios.create({
-  baseURL: 'http://localhost:3001/api', // La URL de tu backend
+  baseURL: 'http://localhost:3001/api', // La URL base de tu backend
 });
 
-// Exportamos funciones para cada endpoint de la API
-// Agrega estas funciones a tu api.js
+// 2. INTERCEPTOR DE PETICIONES
+// Se ejecuta ANTES de que cada petición sea enviada.
+apiClient.interceptors.request.use(
+  (config) => {
+    // Obtenemos el token del localStorage (donde lo guardaremos después del login)
+    const token = localStorage.getItem('token');
 
-export const registerUser = (userData) => {
-  // userData sería { username: 'test', password: '123' }
-  return apiClient.post('/users/register', userData);
-};
+    // Si el token existe, lo añadimos a las cabeceras de la petición
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    // Si hay un error, lo rechazamos
+    return Promise.reject(error);
+  }
+);
 
-// Necesitaremos un SP y una ruta en el backend para el login.
-// Por ahora, lo dejamos preparado.
+// 3. DEFINICIÓN DE LAS FUNCIONES DE LA API
+
+// --- Autenticación ---
 export const loginUser = (credentials) => {
   return apiClient.post('/users/login', credentials);
 };
+
+export const registerUser = (userData) => {
+  return apiClient.post('/users/register', userData);
+};
+
+// --- Películas ---
 export const searchMovies = (query) => {
   return apiClient.get(`/movies/search/${query}`);
 };
 
+// Función nueva para obtener los detalles de UNA película (necesaria para la página de detalles)
+export const getMovieById = (movieId) => {
+  return apiClient.get(`/movies/${movieId}`); // Necesitarás crear esta ruta en el backend
+};
+
+// --- Reviews ---
+// Fíjate que ya no pasamos el 'userId'. El backend lo sabrá gracias al token.
 export const addMovieReview = (movieId, reviewData) => {
-  // reviewData sería un objeto como { userId: 1, rating: 5, comment: '¡Genial!' }
+  // reviewData sería un objeto como { rating: 5, comment: '¡Genial!' }
   return apiClient.post(`/movies/${movieId}/reviews`, reviewData);
 };
-
-export const registerUser = (userData) => {
-  // userData sería { username: 'test', password: '123' }
-  return apiClient.post('/users/register', userData);
-};
-
-// Aquí agregaríamos las funciones para login, obtener detalles de una peli, etc.
