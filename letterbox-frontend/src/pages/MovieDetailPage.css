@@ -1,0 +1,212 @@
+/* Estilos para la página de detalles de película */
+.movie-detail-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  color: var(--primary-text);
+}
+
+.back-button {
+  background-color: var(--accent-color);
+  color: var(--background-color);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-bottom: 20px;
+  transition: all 0.2s ease;
+}
+
+.back-button:hover {
+  background-color: #00c44a;
+  transform: translateY(-1px);
+}
+
+.movie-detail-content {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.movie-detail-poster img {
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.movie-detail-info h1 {
+  color: var(--accent-color);
+  margin-bottom: 10px;
+  font-size: 2.5em;
+}
+
+.director {
+  color: var(--secondary-text);
+  font-size: 1.2em;
+  margin-bottom: 15px;
+}
+
+.movie-rating-display {
+  background-color: var(--card-background);
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  margin-bottom: 20px;
+  font-size: 1.1em;
+  font-weight: 600;
+}
+
+.movie-detail-info h2 {
+  color: var(--primary-text);
+  margin: 30px 0 15px 0;
+  font-size: 1.5em;
+}
+
+.movie-detail-info p {
+  line-height: 1.6;
+  color: var(--secondary-text);
+  margin-bottom: 20px;
+}
+
+/* Sección de reseñas */
+.add-review-section {
+  background-color: var(--card-background);
+  padding: 25px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  margin-top: 30px;
+}
+
+.add-review-section h3 {
+  color: var(--accent-color);
+  margin-bottom: 20px;
+  font-size: 1.3em;
+}
+
+.rating-input {
+  margin-bottom: 20px;
+}
+
+.rating-input label {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--primary-text);
+  font-weight: 500;
+}
+
+.stars-container {
+  display: flex;
+  gap: 5px;
+}
+
+.star {
+  font-size: 2em;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.star:hover,
+.star.selected {
+  color: #ffd700;
+  transform: scale(1.1);
+}
+
+.comment-input {
+  margin-bottom: 20px;
+}
+
+.comment-input label {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--primary-text);
+  font-weight: 500;
+}
+
+.comment-input textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--background-color);
+  color: var(--primary-text);
+  font-size: 16px;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.comment-input textarea:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.submit-review-button {
+  background-color: var(--accent-color);
+  color: var(--background-color);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.submit-review-button:hover:not(:disabled) {
+  background-color: #00c44a;
+  transform: translateY(-1px);
+}
+
+.submit-review-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.login-prompt {
+  background-color: var(--card-background);
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  text-align: center;
+  color: var(--secondary-text);
+}
+
+.login-button-inline {
+  background: none;
+  border: none;
+  color: var(--accent-color);
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: inherit;
+}
+
+.login-button-inline:hover {
+  color: #00c44a;
+}
+
+.loading-message,
+.error-message {
+  text-align: center;
+  padding: 40px;
+  font-size: 1.2em;
+  color: var(--secondary-text);
+}
+
+.error-message {
+  color: #ff4545;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .movie-detail-content {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .movie-detail-info h1 {
+    font-size: 2em;
+  }
+}

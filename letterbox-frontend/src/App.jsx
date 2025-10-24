@@ -2,21 +2,20 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { UserProvider } from './context/UserContext';
 import HomePage from './pages/HomePage';
-// import MovieDetailPage from './pages/MovieDetailPage'; // Los crearemos luego
-// import LoginPage from './pages/LoginPage'; // Los crearemos luego
+import MovieDetailPage from './pages/MovieDetailPage'; // <-- 1. Importar
+//import LoginPage from './pages/LoginPage'; // Ya no es necesaria si usamos el Modal
 import './App.css';
 
 function App() {
   return (
     <UserProvider>
       <div className="App">
-        {/* Aquí podrías poner un componente Navbar que se vea en todas las páginas */}
+        {/* Aquí podrías poner un componente Navbar */}
         <Routes>
           <Route path="/" element={<HomePage />} />
-          {/* Descomentaremos estas líneas a medida que creemos los componentes
+          {/* 2. Añadir la ruta para detalles */}
           <Route path="/movie/:movieId" element={<MovieDetailPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          */}
+          {/* <Route path="/login" element={<LoginPage />} /> Ya no la necesitamos si AuthModal funciona bien */}
         </Routes>
       </div>
     </UserProvider>
