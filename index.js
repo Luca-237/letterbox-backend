@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import http from 'http';
 import { initSocket } from './src/sockets/socketManager.js';
-import { testConnection } from './src/config/db.js';
+import { testConnection, initDatabase } from './src/config/db.js';
 
 // Importar rutas
 import userRoutes from './src/routes/userRoutes.js';
@@ -53,8 +53,8 @@ initSocket(server); // Inicializa y adjunta socket.io al servidor
 // --- Iniciar el servidor ---
 const startServer = async () => {
   try {
-    // Verificar conexión a la base de datos
-    const dbConnected = await testConnection();
+    // Inicializar la base de datos
+    const dbConnected = await initDatabase();
     if (!dbConnected) {
       console.error('❌ No se pudo conectar a la base de datos. Verifica la configuración.');
       process.exit(1);

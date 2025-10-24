@@ -1,4 +1,4 @@
-import pool from '../config/db.js';
+import { getDatabase } from '../config/db.js';
 import { scrapeMovieData } from '../services/scraperService.js';
 import { getIo } from '../sockets/socketManager.js';
 
@@ -11,7 +11,8 @@ export const getAllMovies = async (req, res) => {
   try {
     console.log('🎬 Obteniendo todas las películas');
     
-    const [movies] = await pool.query('SELECT * FROM pelis ORDER BY nombre ASC');
+    const db = getDatabase();
+    const movies = await db.all('SELECT * FROM pelis ORDER BY nombre ASC');
     
     console.log(`✅ Encontradas ${movies.length} películas`);
     
@@ -52,9 +53,11 @@ export const searchMovies = async (req, res) => {
     
     console.log(`🔍 Buscando películas: "${sanitizedQuery}"`);
     
-    const [results] = await pool.query('CALL sp_filtrar_pelis_por_nombre(?)', [sanitizedQuery]);
-    
-    const movies = results && results.length > 0 ? results[0] : [];
+    const db = getDatabase();
+    const movies = await db.all(
+      'SELECT * FROM pelis WHERE nombre LIKE ? ORDER BY nombre ASC',
+      [`%${sanitizedQuery}%`]
+    );
     
     console.log(`✅ Encontradas ${movies.length} película(s)`);
     
@@ -83,12 +86,15 @@ export const searchMovies = async (req, res) => {
 export const addReview = async (req, res) => {
   try {
     const { movieId } = req.params;
-    const { userId, rating, comment } = req.body;
+    // --- CORRECCIÓN ---
+    // El userId debe venir del token (req.user), no del body.
+    const { rating, comment } = req.body;
+    const { id: userId } = req.user; // Obtenido del middleware authenticateToken
 
     // Validaciones
     if (!userId || !movieId || !rating) {
       return res.status(400).json({
-        message: 'userId, movieId y rating son requeridos.',
+        message: 'userId (del token), movieId y rating son requeridos.',
         code: 'MISSING_REQUIRED_FIELDS'
       });
     }
@@ -102,8 +108,16 @@ export const addReview = async (req, res) => {
 
     console.log(`📝 Agregando reseña para película ${movieId} por usuario ${userId}`);
     
-    const [rows] = await pool.query('CALL sp_agregar_review(?, ?, ?, ?)', [userId, movieId, rating, comment || '']);
-    const updatedMovie = rows[0][0];
+    const db = getDatabase();
+    
+    // Insertar la review
+    await db.run(
+      'INSERT INTO reviews (usuario_id, pelicula_id, rating, comment) VALUES (?, ?, ?, ?)',
+      [userId, movieId, rating, comment || '']
+    );
+    
+    // Obtener la película actualizada
+    const updatedMovie = await db.get('SELECT * FROM pelis WHERE id = ?', [movieId]);
     
     // Notificar a todos los clientes conectados
     getIo().emit('review_added', {
@@ -150,21 +164,23 @@ export const scrapeAndAddMovie = async (req, res) => {
     
     const movieData = await scrapeMovieData(movieName.trim());
     
+    const db = getDatabase();
+    
     // Verificar si la película ya existe
-    const [existing] = await pool.query(
+    const existing = await db.get(
       'SELECT id FROM pelis WHERE nombre = ?',
       [movieData.nombre]
     );
 
-    if (existing.length > 0) {
+    if (existing) {
       return res.status(409).json({
         message: 'La película ya existe en la base de datos.',
         code: 'MOVIE_EXISTS',
-        data: existing[0]
+        data: existing
       });
     }
     
-    const [result] = await pool.query(
+    const result = await db.run(
       'INSERT INTO pelis (nombre, director, anio, sinopsis, poster_url) VALUES (?, ?, ?, ?, ?)',
       [movieData.nombre, movieData.director, movieData.anio, movieData.sinopsis, movieData.poster_url]
     );
@@ -184,6 +200,43 @@ export const scrapeAndAddMovie = async (req, res) => {
     res.status(500).json({ 
       message: 'Error en el proceso de scraping.',
       code: 'SCRAPING_ERROR',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// --- NUEVA FUNCIÓN ---
+/**
+ * Obtiene una película por su ID
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ */
+export const getMovieById = async (req, res) => {
+  try {
+    const { movieId } = req.params;
+    console.log(`🎬 Obteniendo película con ID: ${movieId}`);
+
+    const db = getDatabase();
+    const movies = await db.all('SELECT * FROM pelis WHERE id = ?', [movieId]);
+
+    if (movies.length === 0) {
+      return res.status(404).json({
+        message: 'Película no encontrada.',
+        code: 'MOVIE_NOT_FOUND'
+      });
+    }
+
+    console.log(`✅ Encontrada: ${movies[0].nombre}`);
+    res.json({
+      success: true,
+      data: movies[0]
+    });
+
+  } catch (error) {
+    console.error('❌ Error al obtener película por ID:', error);
+    res.status(500).json({
+      message: 'Error al obtener la película.',
+      code: 'GET_MOVIE_BY_ID_ERROR',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }

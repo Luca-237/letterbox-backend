@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import pool from '../config/db.js';
+import { getDatabase } from '../config/db.js';
 
 /**
  * Middleware para verificar el token JWT
@@ -22,10 +22,10 @@ export const authenticateToken = async (req, res, next) => {
     // Verificar el token
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
     
-    // Verificar que el usuario existe en la base de datos
-    const [users] = await pool.query('SELECT id, username FROM usuarios WHERE id = ?', [decoded.userId]);
+    const db = getDatabase();
+    const user = await db.get('SELECT id, nombre FROM usuarios WHERE id = ?', [decoded.userId]);
     
-    if (users.length === 0) {
+    if (!user) {
       return res.status(401).json({
         message: 'Usuario no encontrado.',
         code: 'USER_NOT_FOUND'
@@ -35,7 +35,7 @@ export const authenticateToken = async (req, res, next) => {
     // Agregar información del usuario al request
     req.user = {
       id: decoded.userId,
-      username: users[0].username
+      username: user.nombre
     };
 
     next();
@@ -76,12 +76,14 @@ export const optionalAuth = async (req, res, next) => {
 
     if (token) {
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
-      const [users] = await pool.query('SELECT id, username FROM usuarios WHERE id = ?', [decoded.userId]);
       
-      if (users.length > 0) {
+      const db = getDatabase();
+      const user = await db.get('SELECT id, nombre FROM usuarios WHERE id = ?', [decoded.userId]);
+      
+      if (user) {
         req.user = {
           id: decoded.userId,
-          username: users[0].username
+          username: user.nombre
         };
       }
     }

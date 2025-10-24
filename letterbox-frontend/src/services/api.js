@@ -47,10 +47,11 @@ export const getAllMovies = () => {
 
 // Función nueva para obtener los detalles de UNA película (necesaria para la página de detalles)
 export const getMovieById = (movieId) => {
-  return apiClient.get(`/movies/${movieId}`); // Necesitarás crear esta ruta en el backend
+  return apiClient.get(`/movies/${movieId}`); // Ahora esta ruta SÍ existe en el backend
 };
 
 // --- Reviews ---
+// --- CORRECCIÓN ---
 // Fíjate que ya no pasamos el 'userId'. El backend lo sabrá gracias al token.
 export const addMovieReview = (movieId, reviewData) => {
   // reviewData sería un objeto como { rating: 5, comment: '¡Genial!' }

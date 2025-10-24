@@ -1,4 +1,4 @@
-import pool from '../config/db.js';
+import { getDatabase } from '../config/db.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
@@ -38,11 +38,15 @@ export const registerUser = async (req, res) => {
     const salt = await bcrypt.genSalt(12);
     const passwordHash = await bcrypt.hash(password, salt);
     
-    await pool.query('CALL sp_registrar_usuario(?, ?)', [username.trim(), passwordHash]);
+    const db = getDatabase();
+    const result = await db.run(
+      'INSERT INTO usuarios (nombre, password_hash) VALUES (?, ?)',
+      [username.trim(), passwordHash]
+    );
     
-    console.log(`✅ Usuario ${username} registrado exitosamente`);
+    console.log(`✅ Usuario ${username} registrado exitosamente con ID: ${result.insertId}`);
     
-    // Generar token JWT
+    // El token JWT puede usar 'username', no hay problema
     const token = jwt.sign(
       { userId: result.insertId, username: username.trim() },
       process.env.JWT_SECRET || 'fallback_secret',
@@ -61,7 +65,6 @@ export const registerUser = async (req, res) => {
   } catch (error) {
     console.error('❌ Error al registrar usuario:', error);
     
-    // Manejo de errores específicos de MySQL
     if (error.code === 'ER_DUP_ENTRY') {
       return res.status(409).json({
         message: 'El nombre de usuario ya existe.',
@@ -95,16 +98,18 @@ export const loginUser = async (req, res) => {
 
     console.log(`🔐 Intentando login para: ${username}`);
     
-    const [results] = await pool.query('CALL sp_verificar_login(?)', [username.trim()]);
+    const db = getDatabase();
+    const user = await db.get(
+      'SELECT id, nombre, password_hash, created_at FROM usuarios WHERE nombre = ?',
+      [username.trim()]
+    );
     
-    if (!results[0] || results[0].length === 0) {
+    if (!user) {
       return res.status(401).json({
         message: 'Credenciales inválidas.',
         code: 'INVALID_CREDENTIALS'
       });
-    }
-
-    const user = results[0][0];
+    } 
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
     
     if (!isValidPassword) {
@@ -114,11 +119,13 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    console.log(`✅ Login exitoso para: ${username}`);
+    console.log(`✅ Login exitoso para: ${user.nombre}`);
     
     // Generar token JWT
     const token = jwt.sign(
-      { userId: user.id, username: user.username },
+      // --- CORRECCIÓN AQUÍ ---
+      // Usamos user.nombre que es lo que devolvió la BD
+      { userId: user.id, username: user.nombre },
       process.env.JWT_SECRET || 'fallback_secret',
       { expiresIn: '7d' }
     );
@@ -128,7 +135,9 @@ export const loginUser = async (req, res) => {
       message: 'Login exitoso.',
       data: {
         id: user.id,
-        username: user.username,
+        // --- CORRECCIÓN AQUÍ ---
+        // Devolvemos user.nombre como 'username' al frontend
+        username: user.nombre, 
         createdAt: user.created_at,
         token
       }
