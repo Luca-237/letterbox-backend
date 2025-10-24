@@ -40,6 +40,11 @@ export const searchMovies = (query) => {
   return apiClient.get(`/movies/search/${query}`);
 };
 
+// Obtener todas las películas
+export const getAllMovies = () => {
+  return apiClient.get('/movies/all');
+};
+
 // Función nueva para obtener los detalles de UNA película (necesaria para la página de detalles)
 export const getMovieById = (movieId) => {
   return apiClient.get(`/movies/${movieId}`); // Necesitarás crear esta ruta en el backend
