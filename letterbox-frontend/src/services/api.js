@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 1. CREACIÓN DE LA INSTANCIA DE AXIOS
 const apiClient = axios.create({
-  baseURL: 'http://localhost:3001/api', // La URL base de tu backend
+  baseURL: 'http://localhost:3003/api', // La URL base de tu backend
 });
 
 // 2. INTERCEPTOR DE PETICIONES
