@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import SearchBar from '../components/SearchBar';
 import MovieList from '../components/MovieList';
 import AuthModal from '../components/AuthModal';
-import { searchMovies, getAllMovies } from '../services/api';
+import { searchMovies, getAllMovies, scrapeAndAddMovieApi } from '../services/api';
 import { useAuth } from '../context/UserContext';
 
 function HomePage() {
@@ -10,10 +10,12 @@ function HomePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showAuthModal, setShowAuthModal] = useState(false);
-  
-  const { currentUser, logout, isAuthenticated } = useAuth();
+  const { currentUser, logout, isAuthenticated } = useAuth(); // Asegúrate que isAuthenticated esté aquí
 
-  // Cargar películas al inicio
+  const [addMovieName, setAddMovieName] = useState('');
+  const [addLoading, setAddLoading] = useState(false);
+  const [addMessage, setAddMessage] = useState({ type: '', text: '' });
+
   useEffect(() => {
     loadAllMovies();
   }, []);
@@ -23,12 +25,9 @@ function HomePage() {
       setLoading(true);
       setError('');
       const response = await getAllMovies();
-      
-      // Manejar la nueva estructura de respuesta
       if (response.data.success && Array.isArray(response.data.data)) {
         setMovies(response.data.data);
       } else {
-        console.error('Respuesta inesperada:', response.data);
         setError('Error al cargar las películas');
       }
     } catch (err) {
@@ -39,18 +38,14 @@ function HomePage() {
     }
   };
 
-  // Esta función se la pasaremos al SearchBar
   const handleSearch = async (query) => {
     try {
       setLoading(true);
       setError('');
       const response = await searchMovies(query);
-      
-      // Manejar la nueva estructura de respuesta
       if (response.data.success && Array.isArray(response.data.data)) {
         setMovies(response.data.data);
       } else {
-        console.error('Respuesta de búsqueda inesperada:', response.data);
         setError('Error en la búsqueda');
       }
     } catch (err) {
@@ -60,6 +55,45 @@ function HomePage() {
       setLoading(false);
     }
   };
+
+  const handleAddMovieSubmit = async (e) => {
+    e.preventDefault();
+    if (!addMovieName.trim()) {
+      setAddMessage({ type: 'error', text: 'Ingresa un nombre de película.' });
+      return;
+    }
+    // ESTA VALIDACIÓN SIGUE SIENDO IMPORTANTE:
+    // Si el usuario no está logueado, le muestra el error y abre el modal
+    if (!isAuthenticated()) {
+      setAddMessage({ type: 'error', text: 'Debes iniciar sesión para añadir películas.' });
+      setShowAuthModal(true); // Abrir modal de login
+      return; // Detiene la ejecución aquí si no está logueado
+    }
+
+    setAddLoading(true);
+    setAddMessage({ type: '', text: '' });
+
+    try {
+      const response = await scrapeAndAddMovieApi(addMovieName);
+
+      if (response.data.success) {
+        setAddMessage({ type: 'success', text: response.data.message });
+        setAddMovieName('');
+        await loadAllMovies();
+      } else {
+        setAddMessage({ type: 'error', text: response.data.message || 'Error al añadir la película.' });
+      }
+    } catch (err) {
+      console.error('Error al añadir película:', err);
+      setAddMessage({ type: 'error', text: err.response?.data?.message || 'Error de conexión o del servidor.' });
+    } finally {
+      setAddLoading(false);
+      setTimeout(() => setAddMessage({ type: '', text: '' }), 5000);
+    }
+  };
+
+  // Log para depuración (puedes quitarlo si quieres)
+  // console.log("HomePage -> isAuthenticated:", isAuthenticated());
 
   return (
     <div className="home-page">
@@ -75,8 +109,8 @@ function HomePage() {
                 </button>
               </div>
             ) : (
-              <button 
-                onClick={() => setShowAuthModal(true)} 
+              <button
+                onClick={() => setShowAuthModal(true)}
                 className="login-button"
               >
                 Iniciar Sesión
@@ -85,19 +119,46 @@ function HomePage() {
           </div>
         </div>
         <SearchBar onSearch={handleSearch} />
+
+        {/* --- Formulario para Añadir Película (AHORA SIEMPRE VISIBLE) --- */}
+        {/* Se quitó la condición isAuthenticated() && ( */}
+        <div className="add-movie-section">
+          <h3>Añadir Película desde IMDb</h3>
+          <form onSubmit={handleAddMovieSubmit} className="add-movie-form">
+            <input
+              type="text"
+              className="add-movie-input"
+              placeholder="Nombre exacto de la película en IMDb..."
+              value={addMovieName}
+              onChange={(e) => setAddMovieName(e.target.value)}
+              disabled={addLoading}
+            />
+            <button type="submit" className="add-movie-button" disabled={addLoading}>
+              {addLoading ? 'Buscando y Añadiendo...' : 'Añadir Película'}
+            </button>
+          </form>
+          {addMessage.text && (
+            <p className={`add-movie-message ${addMessage.type}`}>
+              {addMessage.text}
+            </p>
+          )}
+        </div>
+        {/* Se quitó el cierre de la condición )} */}
+        {/* --- Fin del Formulario --- */}
+
         {error && <p className="error-message">{error}</p>}
       </header>
       <main>
-        <MovieList 
-          movies={movies} 
-          loading={loading} 
-          title={movies.length > 0 ? "Películas" : "Todas las Películas"}
+        <MovieList
+          movies={movies}
+          loading={loading}
+          title={error ? "Error" : (movies.length > 0 ? "Películas Encontradas" : "Todas las Películas")}
         />
       </main>
-      
-      <AuthModal 
-        isOpen={showAuthModal} 
-        onClose={() => setShowAuthModal(false)} 
+
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
       />
     </div>
   );

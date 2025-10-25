@@ -222,7 +222,7 @@ h1 {
   line-height: 1.3;
   color: var(--primary-text);
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -432,4 +432,95 @@ h1 {
 .movie-card-link {
   text-decoration: none;
   color: inherit;
+}
+/* src/App.css */
+/* ... (estilos existentes) ... */
+
+/* --- Estilos para la sección de Añadir Película --- */
+.add-movie-section {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: var(--card-background);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.add-movie-section h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: var(--primary-text);
+}
+
+.add-movie-form {
+  display: flex;
+  gap: 10px;
+}
+
+.add-movie-input {
+  flex-grow: 1; /* Ocupa el espacio disponible */
+  padding: 10px 15px;
+  font-size: 16px;
+  border-radius: 6px; /* Bordes menos redondeados que search */
+  border: 1px solid var(--border-color);
+  background-color: var(--background-color); /* Fondo más oscuro */
+  color: var(--primary-text);
+}
+
+.add-movie-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.add-movie-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: none;
+  background-color: var(--accent-color);
+  color: var(--background-color);
+  cursor: pointer;
+  font-weight: bold;
+  white-space: nowrap; /* Evita que el texto del botón se divida */
+  transition: background-color 0.2s ease;
+}
+
+.add-movie-button:hover:not(:disabled) {
+  background-color: #00c44a;
+}
+
+.add-movie-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Estilos para los mensajes de feedback */
+.add-movie-message {
+  margin-top: 15px;
+  margin-bottom: 0;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  text-align: center;
+}
+
+.add-movie-message.success {
+  background-color: rgba(0, 224, 84, 0.2);
+  color: #00e054;
+  border: 1px solid rgba(0, 224, 84, 0.5);
+}
+
+.add-movie-message.error {
+  background-color: rgba(255, 69, 69, 0.2);
+  color: #ff4545;
+  border: 1px solid rgba(255, 69, 69, 0.5);
+}
+
+/* Ajustes responsivos si es necesario */
+@media (max-width: 600px) {
+  .add-movie-form {
+    flex-direction: column; /* Apila los elementos en pantallas pequeñas */
+  }
+  .add-movie-button {
+      width: 100%; /* Botón ocupa todo el ancho */
+  }
 }
