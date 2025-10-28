@@ -1,25 +1,12 @@
--- ====================================================================
--- SCRIPT COMPLETO PARA LA BASE DE DATOS 'letterbox'
--- ====================================================================
 
--- ---
--- PASO 1: Creación y selección de la base de datos
--- ---
 CREATE DATABASE IF NOT EXISTS letterbox;
 USE letterbox;
 
--- ---
--- PASO 2: Borrado de tablas existentes para una instalación limpia
--- ---
 DROP TABLE IF EXISTS reviews;
 DROP TABLE IF EXISTS usuarios;
 DROP TABLE IF EXISTS pelis;
 
--- ---
--- PASO 3: Creación de las tablas principales
--- ---
 
--- Tabla para almacenar los datos de los usuarios
 	CREATE TABLE usuarios (
 		id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
 		nombre_usuario VARCHAR(50) NOT NULL UNIQUE,
@@ -27,7 +14,6 @@ DROP TABLE IF EXISTS pelis;
 		fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	) COMMENT='Tabla para almacenar usuarios y sus credenciales.';
 
-	-- Tabla para almacenar la información de las películas
 	CREATE TABLE pelis (
 		id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
 		nombre VARCHAR(100) NOT NULL,
@@ -38,7 +24,6 @@ DROP TABLE IF EXISTS pelis;
 		puntuacion_promedio DECIMAL(3,2) NOT NULL DEFAULT 0.0
 	) COMMENT='Tabla central que contiene la información de cada película.';
 
-	-- Tabla para almacenar las reviews que conectan usuarios y películas
 	CREATE TABLE reviews (
 		id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
 		pelicula_id INT NOT NULL,
@@ -51,9 +36,6 @@ DROP TABLE IF EXISTS pelis;
 		CONSTRAINT chk_puntuacion CHECK (puntuacion >= 1 AND puntuacion <= 5)
 	) COMMENT='Tabla de unión para las calificaciones de los usuarios a las películas.';
 
-	-- ---
-	-- PASO 4: Inserción de datos iniciales
-	-- ---
 	INSERT INTO pelis (nombre, puntuacion_promedio, anio, director) VALUES
 	('Django Unchained', 4.5, 2012, 'Quentin Tarantino'),
 	('Star Wars: Episode IV - A New Hope', 4.2, 1977, 'George Lucas'),
@@ -61,9 +43,6 @@ DROP TABLE IF EXISTS pelis;
 	('The Naked Gun', 4.0, 1988, 'David Zucker'),
 	('Esperando la carroza', 4.9, 1985, 'Alejandro Doria');
 
-	-- ---
-	-- PASO 5: Creación de Triggers para validación de datos
-	-- ---
 	DROP TRIGGER IF EXISTS validar_puntuacion_min;
 	DROP TRIGGER IF EXISTS validar_puntuacion_max;
 
@@ -91,16 +70,12 @@ DROP TABLE IF EXISTS pelis;
 
 	DELIMITER ;
 
-	-- ---
-	-- PASO 6: Creación de Procedimientos Almacenados (Stored Procedures)
-	-- ---
 	DROP PROCEDURE IF EXISTS sp_registrar_usuario;
 	DROP PROCEDURE IF EXISTS sp_filtrar_pelis_por_nombre;
 	DROP PROCEDURE IF EXISTS sp_agregar_review;
 
 	DELIMITER //
 
-	-- Procedimiento para registrar un nuevo usuario
 	CREATE PROCEDURE sp_registrar_usuario(
 		IN p_nombre_usuario VARCHAR(50),
 		IN p_password_hash VARCHAR(255)
@@ -110,7 +85,6 @@ DROP TABLE IF EXISTS pelis;
 		VALUES (p_nombre_usuario, p_password_hash);
 	END //
 
-	-- Procedimiento para buscar películas por nombre
 	CREATE PROCEDURE sp_filtrar_pelis_por_nombre(
 		IN p_nombre_pelicula VARCHAR(100)
 	)
@@ -129,7 +103,6 @@ DROP TABLE IF EXISTS pelis;
 			nombre LIKE CONCAT('%', p_nombre_pelicula, '%');
 	END //
 
-	-- Procedimiento para añadir una review y actualizar el promedio de la película
 	CREATE PROCEDURE sp_agregar_review(
 		IN p_usuario_id INT,
 		IN p_pelicula_id INT,
@@ -139,21 +112,20 @@ DROP TABLE IF EXISTS pelis;
 	BEGIN
 		DECLARE nuevo_promedio DECIMAL(3,2);
 
-		-- Inserta la nueva review
+
 		INSERT INTO reviews (usuario_id, pelicula_id, puntuacion, comentario)
 		VALUES (p_usuario_id, p_pelicula_id, p_puntuacion, p_comentario);
 		
-		-- Calcula el nuevo promedio de puntuación para esa película
+		
 		SELECT AVG(r.puntuacion) INTO nuevo_promedio
 		FROM reviews r 
 		WHERE r.pelicula_id = p_pelicula_id;
 		
-		-- Actualiza la puntuación promedio en la tabla 'pelis'
+
 		UPDATE pelis
 		SET puntuacion_promedio = nuevo_promedio
 		WHERE id = p_pelicula_id;
-		
-		-- Devuelve la película actualizada como confirmación
+
 		SELECT * FROM pelis WHERE id = p_pelicula_id;
 	END //
 
@@ -162,9 +134,3 @@ DROP TABLE IF EXISTS pelis;
 select * from reviews
 select * from pelis
 
--- ====================================================================
--- FIN DEL SCRIPT
--- ====================================================================
-
--- Ejemplo de uso (opcional, para probar)
--- CALL sp_filtrar_pelis_por_nombre('star');
