@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import http from 'http';
 import { initSocket } from './src/sockets/socketManager.js';
-import { testConnection, initDatabase } from './src/config/db.js';
+import { initDatabase } from './src/config/db.js';
 
 // Importar rutas
 import userRoutes from './src/routes/userRoutes.js';
@@ -16,11 +16,11 @@ const PORT = process.env.PORT || 3003;
 
 // --- Middlewares ---
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  origin: process.env.FRONTEND_URL || "http://localhost:5173", // Esto se leerá desde .env
   credentials: true
-})); // CORS configurado para producción
-app.use(express.json({ limit: '10mb' })); // Límite de tamaño para JSON
-app.use(express.urlencoded({ extended: true })); // Para formularios
+}));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
 
 // --- Middleware de logging ---
 app.use((req, res, next) => {
@@ -40,7 +40,7 @@ app.get('/health', (req, res) => {
 // --- Middleware de manejo de errores ---
 app.use((err, req, res, next) => {
   console.error('Error no manejado:', err);
-  res.status(500).json({ 
+  res.status(500).json({
     message: 'Error interno del servidor',
     error: process.env.NODE_ENV === 'development' ? err.message : 'Error interno'
   });
@@ -60,10 +60,11 @@ const startServer = async () => {
       process.exit(1);
     }
 
-    server.listen(PORT, () => {
-      console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+    // Escuchar en todas las interfaces de red ('0.0.0.0')
+    server.listen(PORT, '0.0.0.0', () => { // <--- CAMBIO AQUÍ
+      console.log(`🚀 Servidor corriendo en http://0.0.0.0:${PORT}`);
       console.log(`📊 Entorno: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`🔗 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
+      console.log(`🔗 Frontend URL permitido (CORS): ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
     });
   } catch (error) {
     console.error('❌ Error al iniciar el servidor:', error);

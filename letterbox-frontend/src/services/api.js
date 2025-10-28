@@ -1,9 +1,12 @@
 import axios from 'axios';
 
+// Dynamically determine the backend host based on how the frontend is accessed
+const BACKEND_HOST = window.location.hostname; // Gets the hostname/IP from the browser's address bar
+const BACKEND_PORT = 3003; // Keep your backend port consistent
+
 // 1. CREACIÓN DE LA INSTANCIA DE AXIOS
 const apiClient = axios.create({
-  // Asegúrate que este puerto coincida con el de tu backend (ej: 3003)
-  baseURL: 'http://localhost:3003/api',
+  baseURL: `http://${BACKEND_HOST}:${BACKEND_PORT}/api`, // Use the dynamic host
 });
 
 // 2. INTERCEPTOR DE PETICIONES
@@ -50,8 +53,6 @@ export const addMovieReview = (movieId, reviewData) => {
 };
 
 // --- Scraping ---
-// ASEGÚRATE DE QUE ESTA FUNCIÓN ESTÉ PRESENTE Y EXPORTADA
 export const scrapeAndAddMovieApi = (movieName) => {
-  // Envía el nombre de la película en el cuerpo de la petición POST
   return apiClient.post('/movies/scrape', { movieName });
 };
