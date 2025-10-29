@@ -1,15 +1,11 @@
 import { getDatabase } from '../config/db.js';
 import { scrapeMovieData } from '../services/scraperService.js';
-import { getIo } from '../sockets/socketManager.js'; // Asegúrate que la ruta sea correcta
+import { getIo } from '../sockets/socketManager.js';
 
-/**
- * Obtiene todas las películas con su puntuación promedio.
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- */
+
 export const getAllMovies = async (req, res) => {
   try {
-    console.log('[MovieController] 🎬 Obteniendo todas las películas');
+    console.log('[MovieController] Obteniendo todas las películas');
 
     const db = getDatabase();
     const movies = await db.all(
@@ -20,7 +16,7 @@ export const getAllMovies = async (req, res) => {
        ORDER BY nombre ASC`
     );
 
-    console.log(`[MovieController] ✅ Encontradas ${movies.length} películas`);
+    console.log(`[MovieController] Encontradas ${movies.length} películas`);
 
     res.json({
       success: true,
@@ -28,7 +24,7 @@ export const getAllMovies = async (req, res) => {
       count: movies.length
     });
   } catch (error) {
-    console.error('[MovieController] ❌ Error al obtener películas:', error);
+    console.error('[MovieController] Error al obtener películas:', error);
     res.status(500).json({
       success: false,
       message: 'Error al obtener las películas.',
@@ -38,11 +34,7 @@ export const getAllMovies = async (req, res) => {
   }
 };
 
-/**
- * Busca películas por nombre.
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- */
+
 export const searchMovies = async (req, res) => {
   try {
     const { query } = req.params;
@@ -56,7 +48,7 @@ export const searchMovies = async (req, res) => {
     }
 
     const sanitizedQuery = query.trim().substring(0, 100);
-    console.log(`[MovieController] 🔍 Buscando películas: "${sanitizedQuery}"`);
+    console.log(`[MovieController] Buscando películas: "${sanitizedQuery}"`);
 
     const db = getDatabase();
     const movies = await db.all(
@@ -69,7 +61,7 @@ export const searchMovies = async (req, res) => {
       [`%${sanitizedQuery}%`]
     );
 
-    console.log(`[MovieController] ✅ Encontradas ${movies.length} película(s) para "${sanitizedQuery}"`);
+    console.log(`[MovieController] Encontradas ${movies.length} película(s) para "${sanitizedQuery}"`);
 
     res.json({
       success: true,
@@ -79,7 +71,7 @@ export const searchMovies = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('[MovieController] ❌ Error en búsqueda de películas:', error);
+    console.error('[MovieController] Error en búsqueda de películas:', error);
     res.status(500).json({
       success: false,
       message: 'Error interno del servidor al buscar películas.',
@@ -89,11 +81,7 @@ export const searchMovies = async (req, res) => {
   }
 };
 
-/**
- * Agrega una reseña a una película y actualiza su puntuación promedio.
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- */
+
 export const addReview = async (req, res) => {
   try {
     const { movieId } = req.params;
@@ -112,7 +100,7 @@ export const addReview = async (req, res) => {
     }
     const safeComment = comment ? comment.trim().substring(0, 1000) : '';
 
-    console.log(`[MovieController] 📝 Agregando reseña (Rating: ${ratingNum}) para película ${movieId} por usuario ${userId}`);
+    console.log(`[MovieController] Agregando reseña (Rating: ${ratingNum}) para película ${movieId} por usuario ${userId}`);
 
     const db = getDatabase();
 
@@ -135,7 +123,7 @@ export const addReview = async (req, res) => {
     const newAverage = avgResult?.avgRating ? parseFloat(avgResult.avgRating.toFixed(2)) : 0.0;
 
     await db.run('UPDATE pelis SET puntuacion_promedio = ? WHERE id = ?', [newAverage, movieId]);
-    console.log(`[MovieController] 📊 Puntuación promedio actualizada para película ${movieId}: ${newAverage}`);
+    console.log(`[MovieController] Puntuación promedio actualizada para película ${movieId}: ${newAverage}`);
 
     const updatedMovie = await db.get(
       `SELECT id, nombre, director, anio, poster_url,
@@ -153,9 +141,9 @@ export const addReview = async (req, res) => {
         newAverageRating: newAverage,
         updatedMovie: updatedMovie
       });
-      console.log(`[MovieController] 📢 Evento 'review_added' emitido para película ${movieId}`);
+      console.log(`[MovieController] Evento 'review_added' emitido para película ${movieId}`);
     } catch (socketError) {
-      console.error("[MovieController] ⚠️ Error al emitir evento de socket (no crítico):", socketError.message);
+      console.error("[MovieController] Error al emitir evento de socket (no crítico):", socketError.message);
     }
 
     res.status(201).json({
@@ -167,7 +155,7 @@ export const addReview = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('[MovieController] ❌ Error al agregar/actualizar reseña:', error);
+    console.error('[MovieController] Error al agregar/actualizar reseña:', error);
     if (error.code === 'SQLITE_CONSTRAINT') {
       return res.status(409).json({ success: false, message: 'Error de restricción de base de datos.', code: 'DB_CONSTRAINT_ERROR' });
     }
@@ -180,11 +168,7 @@ export const addReview = async (req, res) => {
   }
 };
 
-/**
- * Realiza scraping de IMDb, agrega la película si no existe.
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- */
+
 export const scrapeAndAddMovie = async (req, res) => {
   const { movieName } = req.body;
 
@@ -197,33 +181,28 @@ export const scrapeAndAddMovie = async (req, res) => {
   }
 
   const trimmedMovieName = movieName.trim();
-  console.log(`[MovieController] 🎬 Iniciando scraping y agregado para: "${trimmedMovieName}"`);
+  console.log(`[MovieController] Iniciando scraping y agregado para: "${trimmedMovieName}"`);
 
   try {
-    // Llama a la función de scraping
     const movieData = await scrapeMovieData(trimmedMovieName);
 
-    // --- Log para verificar datos recibidos ---
     console.log(`[MovieController] Datos recibidos del scraper:`, JSON.stringify(movieData, null, 2));
     console.log(`[MovieController] poster_url recibido: ${movieData?.poster_url}`);
-    // --- Fin del Log ---
 
-    // Validar datos mínimos (nombre es esencial)
     if (!movieData?.nombre) {
-      console.error('[MovieController] ❌ El scraper no devolvió un nombre de película.');
+      console.error('[MovieController] El scraper no devolvió un nombre de película.');
       throw new Error('No se pudo obtener el nombre de la película del scraping.');
     }
 
     const db = getDatabase();
 
-    // Verificar si la película YA EXISTE (insensible a mayúsculas/minúsculas)
     const existing = await db.get(
-      'SELECT * FROM pelis WHERE LOWER(nombre) = LOWER(?)', // Compara en minúsculas
+      'SELECT * FROM pelis WHERE LOWER(nombre) = LOWER(?)', 
       [movieData.nombre]
     );
 
     if (existing) {
-      console.log(`[MovieController] 🟠 Película "${existing.nombre}" ya existe con ID: ${existing.id}. No se agrega.`);
+      console.log(`[MovieController] Película "${existing.nombre}" ya existe con ID: ${existing.id}. No se agrega.`);
       return res.status(200).json({
         success: true,
         message: 'La película ya existe en la base de datos.',
@@ -232,48 +211,47 @@ export const scrapeAndAddMovie = async (req, res) => {
       });
     }
 
-    // Si no existe, INSERTAR la nueva película
-    console.log(`[MovieController] 💾 Intentando insertar película "${movieData.nombre}" con poster_url: ${movieData.poster_url}`);
+    console.log(`[MovieController] Intentando insertar película "${movieData.nombre}" con poster_url: ${movieData.poster_url}`);
     const result = await db.run(
       `INSERT INTO pelis (nombre, director, anio, sinopsis, poster_url, puntuacion_promedio)
-       VALUES (?, ?, ?, ?, ?, ?)`, // 6 placeholders
+       VALUES (?, ?, ?, ?, ?, ?)`, 
       [
-        movieData.nombre,             // 1
-        movieData.director || null,   // 2
-        movieData.anio || null,       // 3
-        movieData.sinopsis || null,   // 4
-        movieData.poster_url || null, // 5 <-- Se usa el valor recibido (o null si no vino)
-        0.0                           // 6
+        movieData.nombre,           
+        movieData.director || null, 
+        movieData.anio || null,      
+        movieData.sinopsis || null,  
+        movieData.poster_url || null,
+        0.0                         
       ]
     );
 
     const newMovieId = result.lastID;
     if (!newMovieId) {
-        console.error('[MovieController] ❌ Error: No se obtuvo lastID después del INSERT.');
+        console.error('[MovieController] Error: No se obtuvo lastID después del INSERT.');
         throw new Error('No se pudo obtener el ID de la película recién insertada.');
     }
-    console.log(`[MovieController] ✅ Película "${movieData.nombre}" (ID: ${newMovieId}) insertada en la DB.`);
+    console.log(`[MovieController] Película "${movieData.nombre}" (ID: ${newMovieId}) insertada en la DB.`);
 
-    // Obtener los datos completos de la película recién insertada para devolverlos
+
     const newMovieData = await db.get(
         `SELECT id, nombre, director, anio, poster_url, sinopsis,
                 COALESCE(puntuacion_promedio, 0.0) as puntuacion_promedio
          FROM pelis WHERE id = ?`,
         [newMovieId]
     );
-     // Log para verificar qué se guardó realmente
+  
      console.log(`[MovieController] Datos recuperados de DB tras insertar:`, JSON.stringify(newMovieData, null, 2));
 
 
-    // Emitir evento de nueva película por WebSocket
+
     try {
       getIo().emit('movie_added', newMovieData);
-      console.log(`[MovieController] 📢 Evento 'movie_added' emitido para película ${newMovieId}`);
+      console.log(`[MovieController] Evento 'movie_added' emitido para película ${newMovieId}`);
     } catch (socketError) {
-      console.error("[MovieController] ⚠️ Error al emitir evento de socket (no crítico):", socketError.message);
+      console.error("[MovieController] Error al emitir evento de socket (no crítico):", socketError.message);
     }
 
-    // Responder con éxito y los datos de la nueva película
+    
     res.status(201).json({
       success: true,
       message: 'Película agregada exitosamente desde scraping.',
@@ -281,8 +259,7 @@ export const scrapeAndAddMovie = async (req, res) => {
     });
 
   } catch (error) {
-    // Captura errores tanto del scraping como de la base de datos
-    console.error(`[MovieController] ❌ Error en scrapeAndAddMovie para "${trimmedMovieName}":`, error);
+    console.error(`[MovieController] Error en scrapeAndAddMovie para "${trimmedMovieName}":`, error);
     let statusCode = 500;
     let errorCode = 'SCRAPING_ADD_ERROR';
     if (error.message.includes('No se encontró') || error.message.includes('Película no encontrada')) {
@@ -291,15 +268,15 @@ export const scrapeAndAddMovie = async (req, res) => {
     } else if (error.message.includes('No se pudo obtener el nombre')) {
         statusCode = 500;
         errorCode = 'SCRAPING_DATA_MISSING';
-    } else if (error.code === 'SQLITE_CONSTRAINT') { // Error de base de datos
-        statusCode = 500; // O 409 si es apropiado
+    } else if (error.code === 'SQLITE_CONSTRAINT') { 
+        statusCode = 500; 
         errorCode = 'DB_INSERT_ERROR';
     }
 
 
     res.status(statusCode).json({
       success: false,
-      // Usar el mensaje del error capturado para dar más detalle
+
       message: error.message || 'Error en el proceso de scraping o guardado.',
       code: errorCode,
       error: process.env.NODE_ENV === 'development' ? error.stack : undefined
@@ -307,11 +284,7 @@ export const scrapeAndAddMovie = async (req, res) => {
   }
 };
 
-/**
- * Obtiene los detalles de una película específica por su ID.
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- */
+
 export const getMovieById = async (req, res) => {
   try {
     const { movieId } = req.params;
@@ -320,7 +293,7 @@ export const getMovieById = async (req, res) => {
       return res.status(400).json({ success: false, message: 'ID de película inválido.', code: 'INVALID_MOVIE_ID' });
     }
 
-    console.log(`[MovieController] 🎬 Obteniendo detalles de película con ID: ${id}`);
+    console.log(`[MovieController] Obteniendo detalles de película con ID: ${id}`);
 
     const db = getDatabase();
     const movie = await db.get(
@@ -334,7 +307,7 @@ export const getMovieById = async (req, res) => {
     );
 
     if (!movie) {
-      console.log(`[MovieController] 🟠 Película con ID ${id} no encontrada.`);
+      console.log(`[MovieController] Película con ID ${id} no encontrada.`);
       return res.status(404).json({
         success: false,
         message: 'Película no encontrada.',
@@ -342,14 +315,14 @@ export const getMovieById = async (req, res) => {
       });
     }
 
-    console.log(`[MovieController] ✅ Detalles encontrados para: ${movie.nombre} (ID: ${movie.id})`);
+    console.log(`[MovieController] Detalles encontrados para: ${movie.nombre} (ID: ${movie.id})`);
     res.json({
       success: true,
       data: movie
     });
 
   } catch (error) {
-    console.error('[MovieController] ❌ Error al obtener película por ID:', error);
+    console.error('[MovieController] Error al obtener película por ID:', error);
     res.status(500).json({
       success: false,
       message: 'Error interno del servidor al obtener la película.',
