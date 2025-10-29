@@ -2,22 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getMovieById, addMovieReview } from '../services/api';
 import { useAuth } from '../context/UserContext';
-import './MovieDetailPage.css'; // Crearemos este archivo para estilos
+import './MovieDetailPage.css';
 
 function MovieDetailPage() {
-  const { movieId } = useParams(); // Obtiene el ID de la URL
+  const { movieId } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated, currentUser } = useAuth();
 
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [rating, setRating] = useState(0); // Puntuación seleccionada (1-5)
+  const [rating, setRating] = useState(0); 
   const [comment, setComment] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
-  // Efecto para cargar los detalles de la película
   useEffect(() => {
     const fetchMovie = async () => {
       try {
@@ -37,9 +36,8 @@ function MovieDetailPage() {
       }
     };
     fetchMovie();
-  }, [movieId]); // Se ejecuta cada vez que cambia el movieId
+  }, [movieId]); 
 
-  // Manejar envío de la review
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     if (!isAuthenticated()) {
@@ -58,13 +56,11 @@ function MovieDetailPage() {
       const reviewData = { rating, comment };
       const response = await addMovieReview(movieId, reviewData);
       if (response.data.success) {
-        // Opcional: Actualizar la película localmente o recargar
-        // Por simplicidad, podrías mostrar un mensaje de éxito
+
         alert('Reseña añadida con éxito!');
-        setRating(0); // Resetear formulario
+        setRating(0); 
         setComment('');
-        // Podrías recargar los datos de la peli si quieres ver el promedio actualizado al instante
-        // fetchMovie(); // Descomenta si quieres recargar
+  
       } else {
         setSubmitError('Hubo un error al guardar la reseña.');
       }
@@ -76,18 +72,16 @@ function MovieDetailPage() {
     }
   };
 
-  // Renderizado condicional
   if (loading) return <div className="loading-message">Cargando película...</div>;
   if (error) return <div className="error-message">{error}</div>;
   if (!movie) return <div className="error-message">Película no encontrada.</div>;
 
-  // --- Renderizado de Estrellas ---
   const renderStars = () => {
     return [1, 2, 3, 4, 5].map((starValue) => (
       <span
         key={starValue}
         className={`star ${starValue <= rating ? 'selected' : ''}`}
-        onClick={() => !submitLoading && setRating(starValue)} // Permite clickear
+        onClick={() => !submitLoading && setRating(starValue)} 
       >
         ★
       </span>
@@ -111,7 +105,7 @@ function MovieDetailPage() {
           <h2>Sinopsis</h2>
           <p>{movie.sinopsis || 'Sinopsis no disponible.'}</p>
 
-          {/* --- Sección para Añadir Review --- */}
+          {}
           {isAuthenticated() ? (
             <div className="add-review-section">
               <h3>Deja tu reseña, {currentUser?.username}!</h3>
@@ -145,11 +139,9 @@ function MovieDetailPage() {
             </p>
           )}
 
-           {/* --- Aquí podrías añadir una sección para mostrar reviews existentes --- */}
-           {/* <div className="existing-reviews">
-             <h3>Reseñas de otros usuarios</h3>
-             {/* Lógica para cargar y mostrar reviews */}
-           {/*</div> */}
+           {}
+           {}
+           {}
 
         </div>
       </div>
