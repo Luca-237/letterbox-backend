@@ -1,9 +1,7 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
-/**
- * Configuración de axios para scraping
- */
+
 const axiosConfig = {
   timeout: 10000,
   headers: {
@@ -11,23 +9,16 @@ const axiosConfig = {
   }
 };
 
-/**
- * Extrae datos de una película desde IMDb
- * @param {string} movieName - Nombre de la película a buscar
- * @returns {Object} Datos de la película
- */
+
 export async function scrapeMovieData(movieName) {
   try {
     console.log(`🔍 Iniciando scraping para: "${movieName}"`);
     
-    // URL de búsqueda en IMDb
     const searchUrl = `https://www.imdb.com/find?q=${encodeURIComponent(movieName)}`;
     
-    // 1. Buscar la película
     const searchResponse = await axios.get(searchUrl, axiosConfig);
     let $ = cheerio.load(searchResponse.data);
     
-    // Buscar el primer resultado de película
     const movieLink = $('.find-title-result a').first().attr('href');
     
     if (!movieLink) {
@@ -35,13 +26,11 @@ export async function scrapeMovieData(movieName) {
     }
 
     const movieUrl = `https://www.imdb.com${movieLink}`;
-    console.log(`📄 Accediendo a: ${movieUrl}`);
+    console.log(`Accediendo a: ${movieUrl}`);
 
-    // 2. Obtener datos de la película
     const movieResponse = await axios.get(movieUrl, axiosConfig);
     $ = cheerio.load(movieResponse.data);
 
-    // Extraer datos con selectores actualizados
     const title = $('[data-testid="hero__primary-text"]').text().trim() || 
                   $('h1[data-testid="hero-title-block__title"]').text().trim();
     
@@ -59,7 +48,6 @@ export async function scrapeMovieData(movieName) {
     
     const year = yearText ? parseInt(yearText) : null;
 
-    // Validar datos mínimos
     if (!title) {
       throw new Error('No se pudo extraer el título de la película.');
     }
@@ -72,11 +60,11 @@ export async function scrapeMovieData(movieName) {
       anio: year
     };
 
-    console.log(`✅ Datos extraídos exitosamente: ${title} (${year})`);
+    console.log(`Datos extraídos exitosamente: ${title} (${year})`);
     return movieData;
 
   } catch (error) {
-    console.error('❌ Error en scraping:', error.message);
+    console.error('Error en scraping:', error.message);
     
     if (error.code === 'ECONNABORTED') {
       throw new Error('Timeout al conectar con IMDb. Intenta nuevamente.');
