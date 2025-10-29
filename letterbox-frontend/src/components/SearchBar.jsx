@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 
-// Recibe una función 'onSearch' desde sus props para comunicarse con el padre
 function SearchBar({ onSearch }) {
   const [query, setQuery] = useState('');
 
   const handleSubmit = (e) => {
-    e.preventDefault(); // Evita que la página se recargue al enviar el formulario
+    e.preventDefault();
     if (query.trim()) {
       onSearch(query);
     }
