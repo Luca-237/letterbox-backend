@@ -5,7 +5,7 @@ let io;
 export function initSocket(server) {
   io = new Server(server, {
     cors: {
-      origin: "*", // En producción, limita esto a tu dominio del frontend
+      origin: "*",
       methods: ["GET", "POST"]
     }
   });
@@ -18,7 +18,7 @@ export function initSocket(server) {
     });
   });
 
-  console.log('🔌 Servidor de WebSockets inicializado.');
+  console.log("Servidor inicializado.');
   return io;
 }
 
