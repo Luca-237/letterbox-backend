@@ -1,9 +1,7 @@
 import React from 'react';
 import MovieCard from './MovieCard';
 
-// Recibe una lista de películas y las renderiza
 function MovieList({ movies, loading = false, title = "Películas" }) {
-  // Verificar que movies sea un array
   if (!Array.isArray(movies)) {
     console.error('MovieList: movies no es un array:', movies);
     return <p className="no-results">Error al cargar películas...</p>;
