@@ -7,20 +7,18 @@ function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { login } = useAuth(); // Obtenemos la función login del contexto
-  const navigate = useNavigate(); // Hook para redirigir
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // NOTA: Esta parte requiere que tu backend tenga un endpoint de login
-      // que devuelva los datos del usuario si las credenciales son correctas.
+
       const response = await loginUser({ username, password });
       
-      // Usamos la función del contexto para actualizar el estado global
+ 
       login(response.data.user); 
       localStorage.setItem('token', response.data.token);
-      // Redirigimos al usuario a la página principal
       navigate('/'); 
     } catch (err) {
       setError('Usuario o contraseña incorrectos.');
