@@ -22,7 +22,7 @@ function MovieCard({ movie }) {
           />
           <div className="movie-overlay">
             <div className="movie-rating">
-              ⭐ {movie.puntuacion_promedio ? parseFloat(movie.puntuacion_promedio).toFixed(1) : 'N/A'}
+              {movie.puntuacion_promedio ? parseFloat(movie.puntuacion_promedio).toFixed(1) : 'N/A'}
             </div>
           </div>
         </div>
