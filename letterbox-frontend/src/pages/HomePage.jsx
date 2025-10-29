@@ -10,7 +10,7 @@ function HomePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const { currentUser, logout, isAuthenticated } = useAuth(); // Asegúrate que isAuthenticated esté aquí
+  const { currentUser, logout, isAuthenticated } = useAuth(); 
 
   const [addMovieName, setAddMovieName] = useState('');
   const [addLoading, setAddLoading] = useState(false);
@@ -62,12 +62,10 @@ function HomePage() {
       setAddMessage({ type: 'error', text: 'Ingresa un nombre de película.' });
       return;
     }
-    // ESTA VALIDACIÓN SIGUE SIENDO IMPORTANTE:
-    // Si el usuario no está logueado, le muestra el error y abre el modal
     if (!isAuthenticated()) {
       setAddMessage({ type: 'error', text: 'Debes iniciar sesión para añadir películas.' });
-      setShowAuthModal(true); // Abrir modal de login
-      return; // Detiene la ejecución aquí si no está logueado
+      setShowAuthModal(true);
+      return; 
     }
 
     setAddLoading(true);
@@ -91,9 +89,6 @@ function HomePage() {
       setTimeout(() => setAddMessage({ type: '', text: '' }), 5000);
     }
   };
-
-  // Log para depuración (puedes quitarlo si quieres)
-  // console.log("HomePage -> isAuthenticated:", isAuthenticated());
 
   return (
     <div className="home-page">
@@ -120,8 +115,8 @@ function HomePage() {
         </div>
         <SearchBar onSearch={handleSearch} />
 
-        {/* --- Formulario para Añadir Película (AHORA SIEMPRE VISIBLE) --- */}
-        {/* Se quitó la condición isAuthenticated() && ( */}
+        {}
+        {}
         <div className="add-movie-section">
           <h3>Añadir Película desde IMDb</h3>
           <form onSubmit={handleAddMovieSubmit} className="add-movie-form">
@@ -143,8 +138,8 @@ function HomePage() {
             </p>
           )}
         </div>
-        {/* Se quitó el cierre de la condición )} */}
-        {/* --- Fin del Formulario --- */}
+        {}
+        {}
 
         {error && <p className="error-message">{error}</p>}
       </header>
