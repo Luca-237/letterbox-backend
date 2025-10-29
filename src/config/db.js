@@ -4,10 +4,8 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Configuración de SQLite
 let db;
 
-// Función para inicializar la base de datos
 export const initDatabase = async () => {
   try {
     db = await open({
@@ -15,22 +13,19 @@ export const initDatabase = async () => {
       driver: sqlite3.Database
     });
     
-    console.log('📦 Conectado a la base de datos SQLite.');
+    console.log('Conectado a la base de datos SQLite.');
     
-    // Crear tablas si no existen
     await createTables();
     
     return true;
   } catch (error) {
-    console.error('❌ Error al conectar con la base de datos:', error.message);
+    console.error('Error al conectar con la base de datos:', error.message);
     return false;
   }
 };
 
-// Función para crear las tablas
 const createTables = async () => {
   try {
-    // Tabla usuarios
     await db.exec(`
       CREATE TABLE IF NOT EXISTS usuarios (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,7 +35,6 @@ const createTables = async () => {
       )
     `);
     
-    // Tabla pelis
     await db.exec(`
       CREATE TABLE IF NOT EXISTS pelis (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -54,7 +48,6 @@ const createTables = async () => {
       )
     `);
     
-    // Tabla reviews
     await db.exec(`
       CREATE TABLE IF NOT EXISTS reviews (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -68,10 +61,9 @@ const createTables = async () => {
       )
     `);
     
-    // Insertar películas de ejemplo si no existen
     const movieCount = await db.get('SELECT COUNT(*) as count FROM pelis');
     if (movieCount.count === 0) {
-      console.log('📽️ Insertando películas de ejemplo...');
+      console.log('Insertando películas de ejemplo...');
       
       await db.exec(`
         INSERT INTO pelis (nombre, director, anio, sinopsis, puntuacion_promedio) VALUES
@@ -84,16 +76,15 @@ const createTables = async () => {
         ('Esperando la carroza', 'Alejandro Doria', 1985, 'Una familia espera la muerte de la abuela.', 4.0)
       `);
       
-      console.log('✅ Películas de ejemplo insertadas');
+      console.log('Películas de ejemplo insertadas');
     }
     
-    console.log('✅ Tablas creadas/verificadas');
+    console.log('Tablas creadas/verificadas');
   } catch (error) {
-    console.error('❌ Error creando tablas:', error);
+    console.error('Error creando tablas:', error);
   }
 };
 
-// Función para verificar la conexión
 export const testConnection = async () => {
   try {
     if (!db) {
@@ -101,12 +92,11 @@ export const testConnection = async () => {
     }
     return true;
   } catch (error) {
-    console.error('❌ Error al conectar con la base de datos:', error.message);
+    console.error('Error al conectar con la base de datos:', error.message);
     return false;
   }
 };
 
-// Función para cerrar la base de datos
 export const closeDatabase = async () => {
   try {
     if (db) {
@@ -118,7 +108,6 @@ export const closeDatabase = async () => {
   }
 };
 
-// Función para obtener la instancia de la base de datos
 export const getDatabase = () => {
   if (!db) {
     throw new Error('Base de datos no inicializada. Llama a initDatabase() primero.');
