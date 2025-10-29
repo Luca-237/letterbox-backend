@@ -1,16 +1,10 @@
 import jwt from 'jsonwebtoken';
 import { getDatabase } from '../config/db.js';
 
-/**
- * Middleware para verificar el token JWT
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @param {Function} next - Next middleware function
- */
 export const authenticateToken = async (req, res, next) => {
   try {
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+    const token = authHeader && authHeader.split(' ')[1]; 
 
     if (!token) {
       return res.status(401).json({
@@ -19,7 +13,6 @@ export const authenticateToken = async (req, res, next) => {
       });
     }
 
-    // Verificar el token
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
     
     const db = getDatabase();
@@ -32,7 +25,6 @@ export const authenticateToken = async (req, res, next) => {
       });
     }
 
-    // Agregar información del usuario al request
     req.user = {
       id: decoded.userId,
       username: user.nombre
@@ -63,12 +55,6 @@ export const authenticateToken = async (req, res, next) => {
   }
 };
 
-/**
- * Middleware opcional - no requiere autenticación pero la usa si está disponible
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @param {Function} next - Next middleware function
- */
 export const optionalAuth = async (req, res, next) => {
   try {
     const authHeader = req.headers['authorization'];
@@ -90,7 +76,6 @@ export const optionalAuth = async (req, res, next) => {
 
     next();
   } catch (error) {
-    // Si hay error, continuamos sin autenticación
     next();
   }
 };
