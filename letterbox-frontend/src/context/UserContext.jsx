@@ -1,15 +1,12 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { loginUser, registerUser } from '../services/api';
 
-// 1. Creamos el Contexto
 const UserContext = createContext(null);
 
-// 2. Creamos el "Proveedor" del contexto
 export function UserProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Verificar si hay un token guardado al cargar la app
   useEffect(() => {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
@@ -26,7 +23,6 @@ export function UserProvider({ children }) {
     setLoading(false);
   }, []);
 
-  // Función de login con JWT
   const login = async (credentials) => {
     try {
       const response = await loginUser(credentials);
@@ -46,7 +42,6 @@ export function UserProvider({ children }) {
     }
   };
 
-  // Función de registro con JWT
   const register = async (userData) => {
     try {
       const response = await registerUser(userData);
@@ -88,7 +83,6 @@ export function UserProvider({ children }) {
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }
 
-// 3. Creamos un "hook" personalizado para usar el contexto fácilmente
 export function useAuth() {
   return useContext(UserContext);
 }
