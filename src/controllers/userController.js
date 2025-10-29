@@ -2,16 +2,11 @@ import { getDatabase } from '../config/db.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
-/**
- * Registra un nuevo usuario
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- */
+
 export const registerUser = async (req, res) => {
   try {
     const { username, password } = req.body;
     
-    // Validaciones
     if (!username || !password) {
       return res.status(400).json({ 
         message: 'Usuario y contraseña son requeridos.',
@@ -33,7 +28,7 @@ export const registerUser = async (req, res) => {
       });
     }
 
-    console.log(`👤 Registrando usuario: ${username}`);
+    console.log(`Registrando usuario: ${username}`);
     
     const salt = await bcrypt.genSalt(12);
     const passwordHash = await bcrypt.hash(password, salt);
@@ -44,9 +39,8 @@ export const registerUser = async (req, res) => {
       [username.trim(), passwordHash]
     );
     
-    console.log(`✅ Usuario ${username} registrado exitosamente con ID: ${result.insertId}`);
+    console.log(`Usuario ${username} registrado exitosamente con ID: ${result.insertId}`);
     
-    // El token JWT puede usar 'username', no hay problema
     const token = jwt.sign(
       { userId: result.insertId, username: username.trim() },
       process.env.JWT_SECRET || 'fallback_secret',
@@ -63,7 +57,7 @@ export const registerUser = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('❌ Error al registrar usuario:', error);
+    console.error('Error al registrar usuario:', error);
     
     if (error.code === 'ER_DUP_ENTRY') {
       return res.status(409).json({
@@ -80,11 +74,6 @@ export const registerUser = async (req, res) => {
   }
 };
 
-/**
- * Autentica un usuario
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- */
 export const loginUser = async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -96,7 +85,7 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    console.log(`🔐 Intentando login para: ${username}`);
+    console.log(`Intentando login para: ${username}`);
     
     const db = getDatabase();
     const user = await db.get(
@@ -119,12 +108,10 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    console.log(`✅ Login exitoso para: ${user.nombre}`);
+    console.log(`Login exitoso para: ${user.nombre}`);
     
-    // Generar token JWT
-    const token = jwt.sign(
-      // --- CORRECCIÓN AQUÍ ---
-      // Usamos user.nombre que es lo que devolvió la BD
+     const token = jwt.sign(
+
       { userId: user.id, username: user.nombre },
       process.env.JWT_SECRET || 'fallback_secret',
       { expiresIn: '7d' }
@@ -135,15 +122,14 @@ export const loginUser = async (req, res) => {
       message: 'Login exitoso.',
       data: {
         id: user.id,
-        // --- CORRECCIÓN AQUÍ ---
-        // Devolvemos user.nombre como 'username' al frontend
+
         username: user.nombre, 
         createdAt: user.created_at,
         token
       }
     });
   } catch (error) {
-    console.error('❌ Error en login:', error);
+    console.error('Error en login:', error);
     res.status(500).json({
       message: 'Error interno del servidor.',
       code: 'LOGIN_ERROR',
